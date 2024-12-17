@@ -101,7 +101,6 @@ def handle_operand_values(opcode: int, combo_literal: int,  register: Register) 
     else:
         raise ValueError("Not a valid operand")
     
-# needs a instruction pointer
 def run_program(program: list[int], register: Register) -> None:
     last_instruction = len(program)
     while register.instruction_pointer < last_instruction -1:
@@ -112,6 +111,25 @@ def run_program(program: list[int], register: Register) -> None:
         instruction = INSTRUCTIONS[opcode]
         instruction(operand, register)
 
+def reverse_engineer(program):
+    cur_a = 0
+    to_check = [(1,0)]
+    counter = 0
+    candidates = []
+    while counter < len(to_check):
+        i, cur_a = to_check[counter]
+        for a in range(cur_a, cur_a+8):
+            reg = Register(A=a, out=[])
+            run_program(program, reg)
+            if reg.out == program[-i:]:
+                to_check.append((i+1,a*8))
+                if i == len(program):
+                    candidates.append(a)
+        # print(to_check)
+        counter +=1
+    print(min(candidates))        
+    
+            
 
 
 if __name__ == "__main__":
@@ -164,8 +182,12 @@ if __name__ == "__main__":
 
 
     # Part 2:
-    register = Register(A=117440, out=[])
-    program = [0,3,5,4,3,0]
-    run_program(program, register)
-    print(register)
-    register.print_out()
+    # test input
+    # reverse_engineer([0,3,5,4,3,0])  # 117440
+    reverse_engineer([2,4,1,7,7,5,0,3,1,7,4,1,5,5,3,0])
+
+    # register = Register(A=117440, out=[])
+    # program = [0,3,5,4,3,0]
+    # run_program(program, register)
+    # print(register)
+    # register.print_out()
