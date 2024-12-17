@@ -13,10 +13,10 @@ class Register:
     def print_out(self):
         print(",".join([str(i) for i in self.out]))
     
-Instruction = Callable[[int, int, Register], None]
+Instruction = Callable[[int, Register], None]
 
 
-def adv_0(operand:int, combo:int, register: Register):
+def adv_0(combo:int, register: Register):
     # division
     res = int( register.A / (2**combo))
     register.A = res
@@ -24,7 +24,7 @@ def adv_0(operand:int, combo:int, register: Register):
     register.instruction_pointer += 2
 
 
-def bxl_1(operand: int, combo: int, register: Register):
+def bxl_1(combo: int, register: Register):
     # bitwise xor of operand and register.B
     res = int(bin(combo),2) ^ int(bin(register.B),2)
     register.B = res
@@ -32,15 +32,14 @@ def bxl_1(operand: int, combo: int, register: Register):
     register.instruction_pointer += 2
 
     
-def bst_2(operand: int, combo: int, register: Register):
+def bst_2(combo: int, register: Register):
     res = combo % 8
     register.B = res
 
     register.instruction_pointer += 2
 
 
-
-def jnz_3(operand: int, combo: int, register: Register):
+def jnz_3(combo: int, register: Register):
     if register.A > 0:
         register.instruction_pointer = combo
     else:
@@ -48,35 +47,32 @@ def jnz_3(operand: int, combo: int, register: Register):
 
         # jump by setting the instruction pointer to the value of its literal operand
 
-def bxc_4(operand: int, combo:int, register: Register):
+def bxc_4(combo:int, register: Register):
     res = int(bin(register.B),2) ^ int(bin(register.C),2)
     register. B = res
 
     register.instruction_pointer += 2
 
 
-
-def out_5(operand: int, combo:int, register: Register):
+def out_5(combo:int, register: Register):
     res = combo % 8
     register.out.append(res)
 
     register.instruction_pointer += 2
 
 
-def bdv_6(operand: int, combo:int, register: Register):
+def bdv_6(combo:int, register: Register):
     res = int( register.A / (2**combo))
     register.B = res
 
     register.instruction_pointer += 2
 
 
-def cdv_7(operand: int, combo:int, register: Register):
+def cdv_7(combo:int, register: Register):
     res = int( register.A / (2**combo))
     register.C = res
 
     register.instruction_pointer += 2
-
-
 
 
 INSTRUCTIONS: dict[int, Instruction] = {
@@ -89,6 +85,7 @@ INSTRUCTIONS: dict[int, Instruction] = {
     6: bdv_6,
     7: cdv_7
 }
+
 
 def handle_operand_values(opcode: int, combo_literal: int,  register: Register) -> int:
     if opcode in [1,3]:
@@ -108,13 +105,12 @@ def handle_operand_values(opcode: int, combo_literal: int,  register: Register) 
 def run_program(program: list[int], register: Register) -> None:
     last_instruction = len(program)
     while register.instruction_pointer < last_instruction -1:
-        operand = program[register.instruction_pointer]
-        combo_literal = program[register.instruction_pointer +1]
-        combo = handle_operand_values(operand, combo_literal, register)
+        opcode = program[register.instruction_pointer]
+        operand_literal = program[register.instruction_pointer +1]
+        operand = handle_operand_values(opcode, operand_literal, register)
 
-        instruction = INSTRUCTIONS[operand]
-        instruction(operand, combo, register)
-
+        instruction = INSTRUCTIONS[opcode]
+        instruction(operand, register)
 
 
 
